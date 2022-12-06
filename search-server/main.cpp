@@ -68,6 +68,13 @@ class SearchServer {
             set <string> m_words;
         };
 
+        /**—труктура из конченого слова запроса и флага,
+            указывающего на "плюс" или "минус" -слово.**/
+        struct Word {
+            string word;
+            bool m_flag;
+        };
+
         vector <string> SplitIntoWords(const string& text) const {
             vector <string> words;
             string word;
@@ -94,16 +101,28 @@ class SearchServer {
             return words;
         }
 
+        /**ѕасринг слова в структуру.**/
+        Word ParseQueryWord(const string& word) const {
+            if (word[0] == '-') return {word.substr(1), true};
+            return {word, false};
+        }
+
         /**“еперь все документы парс€тс€ в струтуру.
             ѕлюс-слова и минус-слова отдельно по уникальным спискам.**/
-
         Query ParseQuery(const string& text) const {
             Query query;
             for (const string& word : SplitIntoWordsNoStop(text)) {
-                word[0] == 45 ? query.m_words.insert(word.substr(1)) : query.p_words.insert(word);
+                Word word_struct = ParseQueryWord(word);
+                word_struct.m_flag ? query.m_words.insert(word_struct.word) : query.p_words.insert(word_struct.word);
             }
 
             return query;
+        }
+
+        /**ћетод, который вычисл€ет IDF.
+            “ак мы разгрузим логику метода FindAllDocuments.**/
+        double IDFCompute(const int& inc_docs_num) const {
+            return log(static_cast <double> (doc_count_) / static_cast <double> (inc_docs_num));
         }
 
         /**≈сли плюс слова пусты, то вернЄм пустоту.
@@ -111,19 +130,16 @@ class SearchServer {
             попутно провер€€, нет ли их в минус-словах, и посчитаем релевантность.
             IDF вычисл€етс€ раз за проход внешнего цикла, чтобы не делать это много-много раз.
             » под финал всЄ сдобрим отсечением документов с минусами.
-            я тут просто увЄл за ноль влево релеватность таковых.
-            ¬сЄ перепарсим по условию в вектор структур и на выход.
+            ¬сЄ перепарсим в вектор структур и на выход.
             **/
         vector <Document> FindAllDocuments(const Query& query) const {
             if (query.p_words.size() == 0) return vector <Document>();
             vector <Document> matched_docs;
             map <int, double> docs_rel;
-            double idf;
 
             for (const string& word : query.p_words) {
                 if (!words_id_tf_.count(word) || query.m_words.count(word)) continue;
-                idf = log(static_cast <double> (doc_count_) /
-                          static_cast <double> (words_id_tf_.at(word).size()));
+                double idf = IDFCompute(words_id_tf_.at(word).size());
 
                 for (const auto& [id, tf] : words_id_tf_.at(word)) {
                     if ((docs_rel.count(id) && docs_rel[id] > 0) || !docs_rel.count(id))
@@ -135,7 +151,7 @@ class SearchServer {
                 if (!words_id_tf_.count(word)) continue;
                 for (const auto& [id, tf] : words_id_tf_.at(word)) {
                     if ((docs_rel.count(id) && docs_rel[id] > 0) || !docs_rel.count(id))
-                        docs_rel[id] = -1.0;
+                        docs_rel.erase(id);
                 }
             }
 
