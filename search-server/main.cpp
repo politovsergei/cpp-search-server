@@ -6,10 +6,12 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <numeric>
 
 using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
+constexpr double ACCURACY = 1e-6; // FIX_1
 
 enum class DocumentStatus { ACTUAL, IRRELEVANT, BANNED, REMOVED };
 
@@ -73,15 +75,13 @@ class SearchServer {
 
             sort(matched_documents.begin(), matched_documents.end(),
                  [](const Document& lhs, const Document& rhs) {
-                     if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
-                         return lhs.rating > rhs.rating;
-                     } else {
-                         return lhs.relevance > rhs.relevance;
-                     }
+                     if (abs(lhs.relevance - rhs.relevance) < ACCURACY) return lhs.rating > rhs.rating;
+                     else return lhs.relevance > rhs.relevance;
                  });
-            if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
+
+            if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT)
                 matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
-            }
+
             return matched_documents;
         }
 
@@ -154,10 +154,7 @@ class SearchServer {
 
         static int ComputeAverageRating(const vector <int>& ratings) {
             if (ratings.empty()) return 0;
-            int rating_sum = 0;
-
-            for (const int rating : ratings) { rating_sum += rating; }
-            return rating_sum / static_cast<int>(ratings.size());
+            return accumulate(ratings.begin(), ratings.end(), 0) / static_cast <int>(ratings.size()); // FIX_2
         }
 
         QueryWord ParseQueryWord(string text) const {
