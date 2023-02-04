@@ -85,10 +85,6 @@ class SearchServer {
                 throw invalid_argument("invalid id"s);
             }
 
-            if (find(id_base_.begin(), id_base_.end(), document_id) != id_base_.end()) {
-                throw invalid_argument("id duplication"s);
-            }
-
             if (documents_.count(document_id)) {
                 throw invalid_argument("id duplication"s);
             }
