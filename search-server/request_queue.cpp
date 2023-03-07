@@ -3,6 +3,15 @@
 RequestQueue::RequestQueue(const SearchServer &search_server)
     : search_server_(search_server), empty_counter_(0) {}
 
+template <typename DocumentPredicate>
+std::vector <Document> RequestQueue::AddFindRequest(const std::string &raw_query, DocumentPredicate document_predicate) {
+    std::vector <Document> matched_documents = search_server_.FindTopDocuments(raw_query, document_predicate);
+
+    ChangeStateDeque(matched_documents);
+
+    return matched_documents;
+}
+
 std::vector <Document> RequestQueue::AddFindRequest(const std::string &raw_query, DocumentStatus status) {
     std::vector <Document> matched_documents = search_server_.FindTopDocuments(raw_query, status);
 

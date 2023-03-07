@@ -4,4 +4,5 @@
 #include <cstring>
 
 std::string ReadLine();
+
 int ReadLineWithNumber();

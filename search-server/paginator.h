@@ -3,6 +3,15 @@
 #include <vector>
 
 template <typename Iterator>
+std::ostream& operator<< (std::ostream& os, std::pair <Iterator, Iterator> iter) {
+    if (iter.second != iter.first) {
+        return os << *iter.first << *iter.second;
+    } else {
+        return os << *iter.first;
+    }
+}
+
+template <typename Iterator>
 class Paginator {
     public:
         Paginator(Iterator container_begin, Iterator container_end, const size_t page_size) {

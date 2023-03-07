@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <locale.h>
 
 #include "string_processing.h"
 #include "document.h"
@@ -13,6 +14,8 @@ using namespace std::string_literals;
 int main()
 {
     setlocale(LC_ALL, "Russian");
+
+    TestSearchServer();
 
     std::set <std::string> query_lines = {"curly dog"s, "big collar"s, "sparrow"s};
 
