@@ -14,11 +14,6 @@
 #include "read_input_functions.h"
 #include "string_processing.h"
 
-/** Я не могу понять причину, по которой сыпятся юнит-тесты если не использовать метод using namespace.
-    Поэтому он был оставлен тут, а явные определение пространстви имён были убраны, но только в этом файле.**/
-
-using namespace std;
-
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 constexpr double ACCURACY = 1e-6;
 
@@ -26,19 +21,19 @@ class SearchServer {
     public:
         template <typename StringCollection>
         explicit SearchServer(const StringCollection& stop_words);
-        explicit SearchServer(const string& text);
+        explicit SearchServer(const std::string& text);
 
-        void AddDocument(int document_id, const string& document, DocumentStatus status, const vector <int>& ratings);
+        void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector <int>& ratings);
 
         template <typename KeyMapper>
-        vector <Document> FindTopDocuments(const string& raw_query, KeyMapper k_mapper) const;
-        vector <Document> FindTopDocuments(const string& raw_query, DocumentStatus status) const;
-        vector <Document> FindTopDocuments(const string raw_query) const;
+        std::vector <Document> FindTopDocuments(const std::string& raw_query, KeyMapper k_mapper) const;
+        std::vector <Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const;
+        std::vector <Document> FindTopDocuments(const std::string raw_query) const;
 
         int GetDocumentCount() const;
         int GetDocumentId(const int index) const;
 
-        tuple <vector <string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const;
+        std::tuple <std::vector <std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
 
     private:
         struct DocumentData {
@@ -47,43 +42,43 @@ class SearchServer {
         };
 
         struct QueryWord {
-            string data;
+            std::string data;
             bool is_minus = false;
             bool is_stop = false;
         };
 
         struct Query {
-            set <string> plus_words;
-            set <string> minus_words;
+            std::set <std::string> plus_words;
+            std::set <std::string> minus_words;
         };
 
         /**--- DATA ---**/
-        set <string> stop_words_;
-        map <string, map <int, double>> word_to_document_freqs_;
-        map <int, DocumentData> documents_;
-        vector <int> id_base_;
+        std::set <std::string> stop_words_;
+        std::map <std::string, std::map <int, double>> word_to_document_freqs_;
+        std::map <int, DocumentData> documents_;
+        std::vector <int> id_base_;
         /**------------**/
 
-        bool IsStopWord(const string& word) const;
+        bool IsStopWord(const std::string& word) const;
 
-        static bool IsValidWord(const string& word);
-        static int ComputeAverageRating(const vector <int>& ratings);
+        static bool IsValidWord(const std::string& word);
+        static int ComputeAverageRating(const std::vector <int>& ratings);
 
-        vector <string> SplitIntoWordsNoStop(const string& text) const;
-        double ComputeWordInverseDocumentFreq(const string& word) const;
+        std::vector <std::string> SplitIntoWordsNoStop(const std::string& text) const;
+        double ComputeWordInverseDocumentFreq(const std::string& word) const;
 
-        QueryWord ParseQueryWord(string text) const;
-        Query ParseQuery(const string& text) const;
+        QueryWord ParseQueryWord(std::string text) const;
+        Query ParseQuery(const std::string& text) const;
 
         template <typename KeyMapper>
-        vector <Document> FindAllDocuments(const Query& query, KeyMapper& k_mapper) const;
+        std::vector <Document> FindAllDocuments(const Query& query, KeyMapper& k_mapper) const;
 };
 
 template <typename StringCollection>
 SearchServer::SearchServer(const StringCollection& stop_words) {
-    for (const string& word : set <string> (stop_words.begin(), stop_words.end())) {
+    for (const std::string& word : std::set <std::string> (stop_words.begin(), stop_words.end())) {
         if (!SearchServer::IsValidWord(word)) {
-            throw invalid_argument("invalid stop word"s);
+            throw std::invalid_argument("invalid stop word"s);
         }
 
         if (!word.empty()) {
@@ -94,21 +89,21 @@ SearchServer::SearchServer(const StringCollection& stop_words) {
 }
 
 template <typename KeyMapper>
-vector <Document> SearchServer::FindTopDocuments(const string& raw_query, KeyMapper k_mapper) const {
-    for (const string& word : SplitIntoWords(raw_query)) {
+std::vector <Document> SearchServer::FindTopDocuments(const std::string& raw_query, KeyMapper k_mapper) const {
+    for (const std::string& word : SplitIntoWords(raw_query)) {
         if (!SearchServer::IsValidWord(word)) {
-            throw invalid_argument("invalid query word"s);
+            throw std::invalid_argument("invalid query word"s);
         }
     }
 
     const Query query = ParseQuery(raw_query);
-    vector <Document> result = FindAllDocuments(query, k_mapper);
+    std::vector <Document> result = FindAllDocuments(query, k_mapper);
 
     auto lambda_sort = [](const Document& lhs, const Document& rhs) {
-        return abs(lhs.relevance - rhs.relevance) < ACCURACY ? lhs.rating > rhs.rating : lhs.relevance > rhs.relevance;
+        return std::abs(lhs.relevance - rhs.relevance) < ACCURACY ? lhs.rating > rhs.rating : lhs.relevance > rhs.relevance;
     };
 
-    sort(result.begin(), result.end(), lambda_sort);
+    std::sort(result.begin(), result.end(), lambda_sort);
 
     if (result.size() > MAX_RESULT_DOCUMENT_COUNT) {
         result.resize(MAX_RESULT_DOCUMENT_COUNT);
@@ -118,11 +113,11 @@ vector <Document> SearchServer::FindTopDocuments(const string& raw_query, KeyMap
 }
 
 template <typename KeyMapper>
-vector <Document> SearchServer::FindAllDocuments(const Query& query, KeyMapper& k_mapper) const {
-    map <int, double> document_to_relevance;
-    vector <Document> matched_documents;
+std::vector <Document> SearchServer::FindAllDocuments(const Query& query, KeyMapper& k_mapper) const {
+    std::map <int, double> document_to_relevance;
+    std::vector <Document> matched_documents;
 
-    for (const string& word : query.plus_words) {
+    for (const std::string& word : query.plus_words) {
         if (word_to_document_freqs_.count(word) == 0) {
             continue;
         }
@@ -136,7 +131,7 @@ vector <Document> SearchServer::FindAllDocuments(const Query& query, KeyMapper& 
         }
     }
 
-    for (const string& word : query.minus_words) {
+    for (const std::string& word : query.minus_words) {
         if (word_to_document_freqs_.count(word) == 0) {
             continue;
         }
