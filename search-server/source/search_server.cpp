@@ -37,22 +37,19 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
     id_base_.insert(document_id);
 }
 
+
 void SearchServer::RemoveDocument(int document_id) {
-    if (std::find(id_base_.begin(), id_base_.end(), document_id) != id_base_.end()) {
-        std::map <std::string, std::map <int, double>>::iterator iter = word_to_document_freqs_.begin();
+    std::set <int>::iterator id_iter = id_base_.find(document_id); //FIX_1
 
-        while(iter != word_to_document_freqs_.end()) {
-            auto& data = iter -> second;
-            if (data.find(document_id) != data.end()) {
-                data.erase(document_id);
-            }
-
-            ++iter;
+    //FIX_2
+    if (id_iter != id_base_.end()) {
+        for (const auto [word, _other] : GetWordFrequencies(document_id)) {
+            word_to_document_freqs_[word].erase(document_id);
         }
 
-        documents_.erase(document_id);
+        id_base_.erase(id_iter);
         word_freqs_ids_.erase(document_id);
-        id_base_.erase(document_id);
+        documents_.erase(document_id);
     }
 }
 
