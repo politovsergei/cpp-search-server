@@ -8,8 +8,8 @@ using namespace std::string_literals;
 enum class DocumentStatus { ACTUAL, IRRELEVANT, BANNED, REMOVED };
 
 struct Document {
-    Document(const int& id_, const double& relevance_, const int rating_);
     Document();
+    Document(const int& id_, const double& relevance_, const int rating_);
 
     int id;
     double relevance;

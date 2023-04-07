@@ -24,14 +24,19 @@ class SearchServer {
         explicit SearchServer(const std::string& text);
 
         void AddDocument(int document_id, const std::string& document, DocumentStatus status, const std::vector <int>& ratings);
+        void RemoveDocument(int document_id);
 
         template <typename KeyMapper>
         std::vector <Document> FindTopDocuments(const std::string& raw_query, KeyMapper k_mapper) const;
         std::vector <Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const;
-        std::vector <Document> FindTopDocuments(const std::string raw_query) const;
+        std::vector <Document> FindTopDocuments(const std::string& raw_query) const;
 
         int GetDocumentCount() const;
-        int GetDocumentId(const int index) const;
+
+        const std::map <std::string, double>& GetWordFrequencies(int document_id) const;
+
+        std::set <int> ::const_iterator begin();
+        std::set <int> ::const_iterator end();
 
         std::tuple <std::vector <std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
 
@@ -56,7 +61,8 @@ class SearchServer {
         std::set <std::string> stop_words_;
         std::map <std::string, std::map <int, double>> word_to_document_freqs_;
         std::map <int, DocumentData> documents_;
-        std::vector <int> id_base_;
+        std::set <int> id_base_;
+        std::map <int, std::map <std::string, double>> word_freqs_ids_;
         /**------------**/
 
         bool IsStopWord(const std::string& word) const;
@@ -64,10 +70,11 @@ class SearchServer {
         static bool IsValidWord(const std::string& word);
         static int ComputeAverageRating(const std::vector <int>& ratings);
 
-        std::vector <std::string> SplitIntoWordsNoStop(const std::string& text) const;
         double ComputeWordInverseDocumentFreq(const std::string& word) const;
 
-        QueryWord ParseQueryWord(std::string text) const;
+        std::vector <std::string> SplitIntoWordsNoStop(const std::string& text) const;
+
+        QueryWord ParseQueryWord(const std::string& text) const;
         Query ParseQuery(const std::string& text) const;
 
         template <typename KeyMapper>
@@ -85,7 +92,6 @@ SearchServer::SearchServer(const StringCollection& stop_words) {
             stop_words_.insert(word);
         }
     }
-
 }
 
 template <typename KeyMapper>
@@ -147,3 +153,5 @@ std::vector <Document> SearchServer::FindAllDocuments(const Query& query, KeyMap
 
     return matched_documents;
 }
+
+void AddDocument(SearchServer& search_server, int document_id, const std::string& document, DocumentStatus status, const std::vector<int>& ratings);
