@@ -39,9 +39,8 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
 
 
 void SearchServer::RemoveDocument(int document_id) {
-    std::set <int>::iterator id_iter = id_base_.find(document_id); //FIX_1
+    std::set <int>::iterator id_iter = id_base_.find(document_id);
 
-    //FIX_2
     if (id_iter != id_base_.end()) {
         for (const auto [word, _other] : GetWordFrequencies(document_id)) {
             word_to_document_freqs_[word].erase(document_id);
