@@ -13,7 +13,6 @@ void RemoveDuplicates(SearchServer& search_server) {
             words.insert(word);
         }
 
-        // Не совсем понял с этим моментом, т.к. контейнер и так set, а вот id выше нужно искать всеравно
         if (words_and_id.find(words) != words_and_id.end()) {
             if (words_and_id.at(words) > id) {
                 id_for_remove.push_back(words_and_id.at(words));
