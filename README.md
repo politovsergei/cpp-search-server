@@ -1,4 +1,4 @@
-![yp_cpp](https://i.imgur.com/sUYi5se.jpeg)
+![yp_cpp](http://sergeipauli.site/images/extra/search_engine_banner.jpg)
 
 # Search Engine
 Данный поисковый движок представляет собой классического представителя тех поисковых машин, которые вы можете встретить сегодня в интернете. 
